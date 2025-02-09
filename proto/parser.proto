@@ -4,7 +4,7 @@ package parser;
 
 option go_package="parser/;gen";
 
-service Reverse {
+service Parser {
     rpc Do(Request) returns (Response) {}
 }
 
