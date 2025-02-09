@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package parser;
+
+option go_package="parser/;gen";
+
+service Reverse {
+    rpc Do(Request) returns (Response) {}
+}
+
+message Request {
+    string message = 1;
+}
+
+message Response {
+    string message = 1;
+}
