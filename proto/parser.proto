@@ -8,9 +8,15 @@ service Parser {
     rpc ParsePublic(ParsePublicRequest) returns (Response) {}
 }
 
+message MemberFilters {
+    string birthday = 1;
+    int32 sex = 2;
+}
+
 message ParsePublicRequest {
     string vk_token = 1;
     string public_url = 2;
+    MemberFilters filters = 3;
 }
 
 message Response {
