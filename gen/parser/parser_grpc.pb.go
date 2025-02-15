@@ -26,7 +26,7 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ParserClient interface {
-	ParsePublic(ctx context.Context, in *ParsePublicRequest, opts ...grpc.CallOption) (*Response, error)
+	ParsePublic(ctx context.Context, in *ParsePublicRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ParseProgress], error)
 }
 
 type parserClient struct {
@@ -37,21 +37,30 @@ func NewParserClient(cc grpc.ClientConnInterface) ParserClient {
 	return &parserClient{cc}
 }
 
-func (c *parserClient) ParsePublic(ctx context.Context, in *ParsePublicRequest, opts ...grpc.CallOption) (*Response, error) {
+func (c *parserClient) ParsePublic(ctx context.Context, in *ParsePublicRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ParseProgress], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(Response)
-	err := c.cc.Invoke(ctx, Parser_ParsePublic_FullMethodName, in, out, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &Parser_ServiceDesc.Streams[0], Parser_ParsePublic_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	x := &grpc.GenericClientStream[ParsePublicRequest, ParseProgress]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
 }
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Parser_ParsePublicClient = grpc.ServerStreamingClient[ParseProgress]
 
 // ParserServer is the server API for Parser service.
 // All implementations must embed UnimplementedParserServer
 // for forward compatibility.
 type ParserServer interface {
-	ParsePublic(context.Context, *ParsePublicRequest) (*Response, error)
+	ParsePublic(*ParsePublicRequest, grpc.ServerStreamingServer[ParseProgress]) error
 	mustEmbedUnimplementedParserServer()
 }
 
@@ -62,8 +71,8 @@ type ParserServer interface {
 // pointer dereference when methods are called.
 type UnimplementedParserServer struct{}
 
-func (UnimplementedParserServer) ParsePublic(context.Context, *ParsePublicRequest) (*Response, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ParsePublic not implemented")
+func (UnimplementedParserServer) ParsePublic(*ParsePublicRequest, grpc.ServerStreamingServer[ParseProgress]) error {
+	return status.Errorf(codes.Unimplemented, "method ParsePublic not implemented")
 }
 func (UnimplementedParserServer) mustEmbedUnimplementedParserServer() {}
 func (UnimplementedParserServer) testEmbeddedByValue()                {}
@@ -86,23 +95,16 @@ func RegisterParserServer(s grpc.ServiceRegistrar, srv ParserServer) {
 	s.RegisterService(&Parser_ServiceDesc, srv)
 }
 
-func _Parser_ParsePublic_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ParsePublicRequest)
-	if err := dec(in); err != nil {
-		return nil, err
+func _Parser_ParsePublic_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ParsePublicRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
 	}
-	if interceptor == nil {
-		return srv.(ParserServer).ParsePublic(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Parser_ParsePublic_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ParserServer).ParsePublic(ctx, req.(*ParsePublicRequest))
-	}
-	return interceptor(ctx, in, info, handler)
+	return srv.(ParserServer).ParsePublic(m, &grpc.GenericServerStream[ParsePublicRequest, ParseProgress]{ServerStream: stream})
 }
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Parser_ParsePublicServer = grpc.ServerStreamingServer[ParseProgress]
 
 // Parser_ServiceDesc is the grpc.ServiceDesc for Parser service.
 // It's only intended for direct use with grpc.RegisterService,
@@ -110,12 +112,13 @@ func _Parser_ParsePublic_Handler(srv interface{}, ctx context.Context, dec func(
 var Parser_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "parser.Parser",
 	HandlerType: (*ParserServer)(nil),
-	Methods: []grpc.MethodDesc{
+	Methods:     []grpc.MethodDesc{},
+	Streams: []grpc.StreamDesc{
 		{
-			MethodName: "ParsePublic",
-			Handler:    _Parser_ParsePublic_Handler,
+			StreamName:    "ParsePublic",
+			Handler:       _Parser_ParsePublic_Handler,
+			ServerStreams: true,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
 	Metadata: "parser.proto",
 }

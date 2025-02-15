@@ -5,7 +5,7 @@ package parser;
 option go_package="parser/;gen";
 
 service Parser {
-    rpc ParsePublic(ParsePublicRequest) returns (Response) {}
+    rpc ParsePublic(ParsePublicRequest) returns (stream ParseProgress) {}
 }
 
 message MemberFilters {
@@ -19,6 +19,8 @@ message ParsePublicRequest {
     MemberFilters filters = 3;
 }
 
-message Response {
-    string message = 1;
+message ParseProgress {
+    string task_id = 1;
+    int32 progress = 2;
+    string message = 3;
 }
