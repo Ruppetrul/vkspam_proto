@@ -5,11 +5,12 @@ package parser;
 option go_package="parser/;gen";
 
 service Parser {
-    rpc Do(Request) returns (Response) {}
+    rpc ParsePublic(ParsePublicRequest) returns (Response) {}
 }
 
-message Request {
-    string message = 1;
+message ParsePublicRequest {
+    string vk_token = 1;
+    string public_url = 2;
 }
 
 message Response {

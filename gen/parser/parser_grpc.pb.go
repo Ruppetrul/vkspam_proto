@@ -19,14 +19,14 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Parser_Do_FullMethodName = "/parser.Parser/Do"
+	Parser_ParsePublic_FullMethodName = "/parser.Parser/ParsePublic"
 )
 
 // ParserClient is the client API for Parser service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ParserClient interface {
-	Do(ctx context.Context, in *Request, opts ...grpc.CallOption) (*Response, error)
+	ParsePublic(ctx context.Context, in *ParsePublicRequest, opts ...grpc.CallOption) (*Response, error)
 }
 
 type parserClient struct {
@@ -37,10 +37,10 @@ func NewParserClient(cc grpc.ClientConnInterface) ParserClient {
 	return &parserClient{cc}
 }
 
-func (c *parserClient) Do(ctx context.Context, in *Request, opts ...grpc.CallOption) (*Response, error) {
+func (c *parserClient) ParsePublic(ctx context.Context, in *ParsePublicRequest, opts ...grpc.CallOption) (*Response, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Response)
-	err := c.cc.Invoke(ctx, Parser_Do_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, Parser_ParsePublic_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +51,7 @@ func (c *parserClient) Do(ctx context.Context, in *Request, opts ...grpc.CallOpt
 // All implementations must embed UnimplementedParserServer
 // for forward compatibility.
 type ParserServer interface {
-	Do(context.Context, *Request) (*Response, error)
+	ParsePublic(context.Context, *ParsePublicRequest) (*Response, error)
 	mustEmbedUnimplementedParserServer()
 }
 
@@ -62,8 +62,8 @@ type ParserServer interface {
 // pointer dereference when methods are called.
 type UnimplementedParserServer struct{}
 
-func (UnimplementedParserServer) Do(context.Context, *Request) (*Response, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Do not implemented")
+func (UnimplementedParserServer) ParsePublic(context.Context, *ParsePublicRequest) (*Response, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ParsePublic not implemented")
 }
 func (UnimplementedParserServer) mustEmbedUnimplementedParserServer() {}
 func (UnimplementedParserServer) testEmbeddedByValue()                {}
@@ -86,20 +86,20 @@ func RegisterParserServer(s grpc.ServiceRegistrar, srv ParserServer) {
 	s.RegisterService(&Parser_ServiceDesc, srv)
 }
 
-func _Parser_Do_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Request)
+func _Parser_ParsePublic_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ParsePublicRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ParserServer).Do(ctx, in)
+		return srv.(ParserServer).ParsePublic(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Parser_Do_FullMethodName,
+		FullMethod: Parser_ParsePublic_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ParserServer).Do(ctx, req.(*Request))
+		return srv.(ParserServer).ParsePublic(ctx, req.(*ParsePublicRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -112,8 +112,8 @@ var Parser_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*ParserServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Do",
-			Handler:    _Parser_Do_Handler,
+			MethodName: "ParsePublic",
+			Handler:    _Parser_ParsePublic_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
