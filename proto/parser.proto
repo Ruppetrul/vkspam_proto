@@ -11,6 +11,7 @@ service Parser {
 message MemberFilters {
     string birthday = 1;
     int32 sex = 2;
+    bool birthday_friends = 3;
 }
 
 message ParsePublicRequest {
